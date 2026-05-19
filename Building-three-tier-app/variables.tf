@@ -42,6 +42,27 @@ variable "project_name" {
   }
 }
 
+variable "files_source" {
+  type    = set(object({
+    file = string
+    content-type = string
+  }))
+  default = [
+    {
+      file = "./files/index.html"
+      content-type = "text/html"
+    }, 
+    {
+      file = "./files/style.css"
+      content-type = "text/css"
+    }, 
+    {
+      file = "./files/script.js"
+      content-type = "application/javascript"
+    }
+    ]
+}
+
 variable "tags" {
   type        = map(string)
   description = "Additional tags to apply to all resources"
