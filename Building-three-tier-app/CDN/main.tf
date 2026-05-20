@@ -63,6 +63,7 @@ resource "aws_s3_bucket_policy" "my-bucket-s3" {
   policy = data.aws_iam_policy_document.origin_bucket_policy.json
 }
 
+# Origin bucket policy to enable OAC with cloudfront
 data "aws_iam_policy_document" "origin_bucket_policy" {
   statement {
     sid    = "AllowCloudFrontServicePrincipalReadWrite"
@@ -89,7 +90,8 @@ data "aws_iam_policy_document" "origin_bucket_policy" {
   }
 }
 
-resource "aws_s3_object" "name" {
+# uploading files to s3 bucket
+resource "aws_s3_object" "s3-object" {
   bucket   = aws_s3_bucket.my-bucket-s3.id
   for_each = { for item in var.files_source : item.file => item }
   key      = basename(each.value.file)
@@ -126,4 +128,41 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     target_origin_id       = local.content_bucket_name
     viewer_protocol_policy = "redirect-to-https"
   }
+}
+
+# Package the Lambda function code
+data "archive_file" "lambda_function" {
+  type = "zip"
+  source_file = "${path.module}/files/getUser.js"
+  output_path = "${path.module}/files/getUser.zip"
+}
+
+# IAM role for Lambda execution
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "my-lambda-iam-role" {
+  name               = "${local.name_suffix}-lambda-permission"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
+
+
+resource "aws_lambda_function" "my-lambda-function" {
+  function_name = "${local.name_suffix}-lambda"
+  filename = data.archive_file.lambda_function.output_path
+  role = aws_iam_role.my-lambda-iam-role.arn
+
+  runtime = "nodejs24.x"
+  handler = "getUser.handler"
+
 }
