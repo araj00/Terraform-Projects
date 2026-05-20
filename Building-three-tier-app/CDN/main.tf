@@ -22,7 +22,7 @@ resource "aws_s3_bucket" "my-bucket-s3" {
   bucket = local.content_bucket_name
 
   tags = merge(local.common_tags, {
-    Name        = "${local.name_suffix}-content"
+    Name        = "${local.name_suffix}-bucket"
     Description = "Primary content bucket for CloudFront CDN"
   })
 }
@@ -111,7 +111,6 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
   viewer_certificate {
-    minimum_protocol_version       = "TLSv1.2_2021"
     cloudfront_default_certificate = true
   }
 
