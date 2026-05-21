@@ -2,7 +2,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 
-const ddbClient = new DynamoDBClient({ region: 'ap-south-1' });  // enter your region
+const ddbClient = new DynamoDBClient({ region: 'ap-south-1' });
 const ddb = DynamoDBDocumentClient.from(ddbClient);
 
 async function handler(event) {

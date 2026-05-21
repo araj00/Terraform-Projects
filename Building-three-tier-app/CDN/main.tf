@@ -136,7 +136,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 # Package the Lambda function code
 data "archive_file" "lambda_function" {
   type = "zip"
-  source_file = "${path.module}/files/getUser.js"
+  source_file = "${path.module}/files/getUser.mjs"
   output_path = "${path.module}/files/getUser.zip"
 }
 
@@ -245,4 +245,57 @@ resource "aws_api_gateway_stage" "my-lambda-function-api-method" {
   deployment_id = aws_api_gateway_deployment.my-lambda-function-api-method.id
   rest_api_id   = aws_api_gateway_rest_api.my-lambda-rest-api.id
   stage_name    = var.environment
+}
+
+resource "aws_dynamodb_table" "user-dynamodb-table" {
+  name           = "UserData"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "userId"
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+}
+
+resource "aws_dynamodb_table_item" "user-dynamodb_table" {
+  table_name = aws_dynamodb_table.user-dynamodb-table.name
+  hash_key   = aws_dynamodb_table.user-dynamodb-table.hash_key
+
+  item = <<ITEM
+{
+  "userId": {"S": "1"},
+  "email": {"S": "abc@gmail.com"},
+  "name": {"S": "abc"}
+}
+ITEM
+}
+
+# Create the IAM Policy for DynamoDB Access
+resource "aws_iam_policy" "dynamodb_lambda_policy" {
+  name        = "${local.name_suffix}-dynamodb-lambda-policy"
+  description = "Policy to allow Lambda to access DynamoDB"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem"
+        ]
+        Resource = [
+          aws_dynamodb_table.user-dynamodb-table.arn
+        ]
+      }
+    ]
+  })
+}
+
+# Attach the Policy to the Role
+resource "aws_iam_role_policy_attachment" "lambda_attach" {
+  role       = aws_iam_role.my-lambda-iam-role.name
+  policy_arn = aws_iam_policy.dynamodb_lambda_policy.arn
 }
