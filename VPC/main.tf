@@ -23,6 +23,8 @@ data "aws_availability_zone" "available" {
     values = ["opt-in-not-required"]
 }
 }
+
+# Initialize a VPC network with a CIDR block
 resource "aws_vpc" "VPC-Network-A" {
   cidr_block = "10.0.0.0/16"
   instance_tenancy = "default"
@@ -33,6 +35,7 @@ resource "aws_vpc" "VPC-Network-A" {
   })
 }
 
+# Associate the subnet with VPC network
 resource "aws_subnet" "subnet-VPC-A" {
   vpc_id = aws_vpc.VPC-Network-A.id
   cidr_block = cidrsubnet(aws_vpc.VPC-Network-A.cidr_block,8,1)
@@ -45,6 +48,7 @@ resource "aws_subnet" "subnet-VPC-A" {
   })
 }
 
+# Attach IG to the VPC for internet access
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.VPC-Network-A.id
 
@@ -54,6 +58,7 @@ resource "aws_internet_gateway" "gw" {
   })
 }
 
+# Create a custom route table for the VPC by adding the route table for IG
 resource "aws_route_table" "public-route-table-subnet-A" {
   vpc_id = aws_vpc.VPC-Network-A.id
 
@@ -68,6 +73,7 @@ resource "aws_route_table" "public-route-table-subnet-A" {
   }
 }
 
+# Associate the custom route table with the defined subnet
 resource "aws_route_table_association" "subnet-route-association" {
   subnet_id = aws_subnet.subnet-VPC-A.id
   route_table_id = aws_route_table.public-route-table-subnet-A.id
