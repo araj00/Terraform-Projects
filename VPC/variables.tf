@@ -49,6 +49,7 @@ variable "tags" {
   }
 }
 
+# Limit the ssh of the vpc to noone except your ip. Use curl ifconfig.me to get your public ip
 variable "myIP" {
   type        = string
   description = "Your ip address"
@@ -66,10 +67,10 @@ variable "private-ec2-key-name" {
 
 variable "instance-ami" {
   description = "ami number for ec2 instances"
-  default     = "ami-09ed39e30153c3bf9"
+  default     = "ami-09ed39e30153c3bf9" # you can get your preferred ami from aws console
 }
 
 variable "instance-type" {
   description = "instance type for ec2 instances"
-  default     = "t3.micro"
+  default     = "t3.micro" # you can get the list of available instance-type from aws console
 }
