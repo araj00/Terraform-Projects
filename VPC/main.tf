@@ -92,40 +92,42 @@ resource "aws_route_table_association" "private-subnet-route-association" {
 resource "aws_network_acl" "private-nacl-VPC-A" {
   vpc_id = aws_vpc.VPC-Network-A.id
 
-  egress {
+  ingress {
     rule_no    = 100
     protocol   = "icmp"
     action     = "allow"
-    cidr_block = aws_vpc.VPC-Network-A.cidr_block
+    cidr_block = aws_subnet.public-subnet-VPC-A.cidr_block
     from_port  = 0
     to_port    = 0
+    icmp_type = -1
+    icmp_code = -1
   }
 
+  ingress {
+    rule_no    = 110
+    protocol   = "tcp"
+    action     = "allow"
+    cidr_block = aws_subnet.public-subnet-VPC-A.cidr_block
+    from_port  = 22
+    to_port    = 22
+  }
+  egress {
+    rule_no    = 100
+    protocol   = "icmp"
+    action     = "allow"
+    cidr_block = aws_subnet.public-subnet-VPC-A.cidr_block
+    from_port  = 0
+    to_port    = 0
+    icmp_type = -1
+    icmp_code = -1
+  }
   egress {
     rule_no    = 110
     protocol   = "tcp"
     action     = "allow"
-    cidr_block = var.myIP
-    from_port  = 22
-    to_port    = 22
-  }
-
-  ingress {
-    rule_no    = 100
-    protocol   = "icmp"
-    action     = "allow"
-    cidr_block = aws_vpc.VPC-Network-A.cidr_block
-    from_port  = 8
-    to_port    = 0
-  }
-
-  ingress {
-    rule_no    = 110
-    protocol   = "tcp"
-    action     = "allow"
-    cidr_block = var.myIP
-    from_port  = 22
-    to_port    = 22
+    cidr_block = aws_subnet.public-subnet-VPC-A.cidr_block
+    from_port  = 1024
+    to_port    = 65535
   }
 
   tags = merge(local.common_tags, {
@@ -134,48 +136,36 @@ resource "aws_network_acl" "private-nacl-VPC-A" {
   })
 }
 
-# resource "aws_default_network_acl" "default-NACL-VPC-A" {
-#   default_network_acl_id = aws_vpc.VPC-Network-A.default_network_acl_id
-#   ingress {
-#     rule_no    = 100
-#     protocol   = "tcp"
-#     action     = "allow"
-#     cidr_block = var.myIP
-#     from_port  = 22
-#     to_port    = 22
-#   }
-
-#   ingress {
-#     rule_no    = 110
-#     protocol   = "icmp"
-#     action     = "allow"
-#     cidr_block = aws_vpc.VPC-Network-A.cidr_block
-#     from_port  = 1
-#     to_port    = 1
-#   }
-
-#   egress {
-#     rule_no    = 110
-#     protocol   = "icmp"
-#     action     = "allow"
-#     cidr_block = aws_vpc.VPC-Network-A.cidr_block
-#     from_port  = 8
-#     to_port    = 8
-#   }
-
-#   egress {
-#     rule_no    = 100
-#     protocol   = "tcp"
-#     action     = "allow"
-#     cidr_block = var.myIP
-#     from_port  = 22
-#     to_port    = 22
-#   }
-
-# }
 resource "aws_network_acl_association" "private-nacl-VPC-A" {
   network_acl_id = aws_network_acl.private-nacl-VPC-A.id
   subnet_id      = aws_subnet.private-subnet-VPC-A.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "default-security-ssh-rule-VPC-A" {
+  security_group_id = aws_vpc.VPC-Network-A.default_security_group_id
+
+  cidr_ipv4   = var.myIP
+  from_port   = 22
+  ip_protocol = "tcp"
+  to_port     = 22
+}
+
+resource "aws_vpc_security_group_ingress_rule" "default-security-icmp-rule-VPC-A" {
+  security_group_id = aws_vpc.VPC-Network-A.default_security_group_id
+
+  cidr_ipv4   = var.myIP
+  from_port   = -1
+  ip_protocol = "icmp"
+  to_port     = -1
+}
+
+resource "aws_vpc_security_group_ingress_rule" "default-security-icmp-rule-subnet-2-VPC-A" {
+  security_group_id = aws_vpc.VPC-Network-A.default_security_group_id
+
+  cidr_ipv4   = aws_subnet.private-subnet-VPC-A.cidr_block
+  from_port   = -1
+  ip_protocol = "icmp"
+  to_port     = -1
 }
 
 resource "aws_security_group" "allow_ssh_and_icmp" {
@@ -188,25 +178,59 @@ resource "aws_security_group" "allow_ssh_and_icmp" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_icmp_reply" {
-  security_group_id = aws_security_group.allow_ssh_and_icmp.id
-  cidr_ipv4         = aws_vpc.VPC-Network-A.cidr_block
-  from_port         = 8
-  ip_protocol       = "icmp"
-  to_port           = 0
-}
-
 resource "aws_vpc_security_group_ingress_rule" "allow_ssh_ipv4" {
   security_group_id = aws_security_group.allow_ssh_and_icmp.id
-  cidr_ipv4         = var.myIP
-  from_port         = 22
+  cidr_ipv4         = aws_subnet.public-subnet-VPC-A.cidr_block
   ip_protocol       = "tcp"
+  from_port         = 22
   to_port           = 22
 }
+resource "aws_vpc_security_group_ingress_rule" "allow_icmp_request" {
+  security_group_id = aws_security_group.allow_ssh_and_icmp.id
+  cidr_ipv4         = aws_subnet.public-subnet-VPC-A.cidr_block
+  ip_protocol       = "icmp"
+  from_port = -1
+  to_port = -1
+}
+
 resource "aws_vpc_security_group_egress_rule" "allow_icmp_request" {
   security_group_id = aws_security_group.allow_ssh_and_icmp.id
-  cidr_ipv4         = aws_vpc.VPC-Network-A.cidr_block
-  ip_protocol       = "icmp" # semantically equivalent to all ports
-  from_port = 0
-  to_port = 0
+  cidr_ipv4         = aws_subnet.public-subnet-VPC-A.cidr_block
+  ip_protocol       = "icmp"
+  from_port = -1
+  to_port = -1
+}
+
+resource "aws_key_pair" "public-ec2-key" {
+  key_name   = var.public-ec2-key-name
+  public_key = file("${path.module}/public-server-key-files/public-server-key.pub")
+}
+
+resource "aws_instance" "public-ec2-instance" {
+  ami                    = var.instance-ami
+  instance_type          = var.instance-type
+  key_name               = aws_key_pair.public-ec2-key.key_name
+  vpc_security_group_ids = [aws_vpc.VPC-Network-A.default_security_group_id]
+  subnet_id              = aws_subnet.public-subnet-VPC-A.id
+
+  tags = merge(local.common_tags, {
+    Name = "Public-ec2-instance-VPC-A"
+  })
+}
+
+resource "aws_key_pair" "private-ec2-key" {
+  key_name   = var.private-ec2-key-name
+  public_key = file("${path.module}/private-server-key-files/private-server-key.pub")
+}
+
+resource "aws_instance" "private-ec2-instance" {
+  ami                    = var.instance-ami
+  instance_type          = var.instance-type
+  key_name               = aws_key_pair.private-ec2-key.key_name
+  vpc_security_group_ids = [aws_security_group.allow_ssh_and_icmp.id]
+  subnet_id              = aws_subnet.private-subnet-VPC-A.id
+
+  tags = merge(local.common_tags, {
+    Name = "Private-ec2-instance-VPC-A"
+  })
 }

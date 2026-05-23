@@ -53,3 +53,23 @@ variable "myIP" {
   type        = string
   description = "Your ip address"
 }
+
+variable "public-ec2-key-name" {
+  description = "A public key for public ec2 instance to ssh locally"
+  default     = "public-ec2-key"
+}
+
+variable "private-ec2-key-name" {
+  description = "A public key for private ec2 instance to ssh locally"
+  default     = "private-ec2-key"
+}
+
+variable "instance-ami" {
+  description = "ami number for ec2 instances"
+  default     = "ami-09ed39e30153c3bf9"
+}
+
+variable "instance-type" {
+  description = "instance type for ec2 instances"
+  default     = "t3.micro"
+}
