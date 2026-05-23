@@ -97,8 +97,17 @@ resource "aws_network_acl" "private-nacl-VPC-A" {
     protocol   = "icmp"
     action     = "allow"
     cidr_block = aws_vpc.VPC-Network-A.cidr_block
-    from_port = 1034
-    to_port = 65535
+    from_port  = 0
+    to_port    = 0
+  }
+
+  egress {
+    rule_no    = 110
+    protocol   = "tcp"
+    action     = "allow"
+    cidr_block = var.myIP
+    from_port  = 22
+    to_port    = 22
   }
 
   ingress {
@@ -106,8 +115,17 @@ resource "aws_network_acl" "private-nacl-VPC-A" {
     protocol   = "icmp"
     action     = "allow"
     cidr_block = aws_vpc.VPC-Network-A.cidr_block
-    from_port = 1034
-    to_port = 65535
+    from_port  = 8
+    to_port    = 0
+  }
+
+  ingress {
+    rule_no    = 110
+    protocol   = "tcp"
+    action     = "allow"
+    cidr_block = var.myIP
+    from_port  = 22
+    to_port    = 22
   }
 
   tags = merge(local.common_tags, {
@@ -115,7 +133,80 @@ resource "aws_network_acl" "private-nacl-VPC-A" {
     Description = "A private network ACL for VPC A"
   })
 }
+
+# resource "aws_default_network_acl" "default-NACL-VPC-A" {
+#   default_network_acl_id = aws_vpc.VPC-Network-A.default_network_acl_id
+#   ingress {
+#     rule_no    = 100
+#     protocol   = "tcp"
+#     action     = "allow"
+#     cidr_block = var.myIP
+#     from_port  = 22
+#     to_port    = 22
+#   }
+
+#   ingress {
+#     rule_no    = 110
+#     protocol   = "icmp"
+#     action     = "allow"
+#     cidr_block = aws_vpc.VPC-Network-A.cidr_block
+#     from_port  = 1
+#     to_port    = 1
+#   }
+
+#   egress {
+#     rule_no    = 110
+#     protocol   = "icmp"
+#     action     = "allow"
+#     cidr_block = aws_vpc.VPC-Network-A.cidr_block
+#     from_port  = 8
+#     to_port    = 8
+#   }
+
+#   egress {
+#     rule_no    = 100
+#     protocol   = "tcp"
+#     action     = "allow"
+#     cidr_block = var.myIP
+#     from_port  = 22
+#     to_port    = 22
+#   }
+
+# }
 resource "aws_network_acl_association" "private-nacl-VPC-A" {
   network_acl_id = aws_network_acl.private-nacl-VPC-A.id
   subnet_id      = aws_subnet.private-subnet-VPC-A.id
+}
+
+resource "aws_security_group" "allow_ssh_and_icmp" {
+  name        = "${local.name_suffix}_allow_ssh_and_icmp"
+  description = "Allow TLS inbound traffic and all outbound traffic"
+  vpc_id      = aws_vpc.VPC-Network-A.id
+
+  tags = {
+    Name = "allow_ssh_and_icmp_and_icmp"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_icmp_reply" {
+  security_group_id = aws_security_group.allow_ssh_and_icmp.id
+  cidr_ipv4         = aws_vpc.VPC-Network-A.cidr_block
+  from_port         = 8
+  ip_protocol       = "icmp"
+  to_port           = 0
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_ssh_ipv4" {
+  security_group_id = aws_security_group.allow_ssh_and_icmp.id
+  cidr_ipv4         = var.myIP
+  from_port         = 22
+  ip_protocol       = "tcp"
+  to_port           = 22
+}
+resource "aws_vpc_security_group_egress_rule" "allow_icmp_request" {
+  security_group_id = aws_security_group.allow_ssh_and_icmp.id
+  cidr_ipv4         = aws_vpc.VPC-Network-A.cidr_block
+  ip_protocol       = "icmp" # semantically equivalent to all ports
+  from_port = 0
+  to_port = 0
 }

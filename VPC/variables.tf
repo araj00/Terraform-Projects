@@ -48,3 +48,8 @@ variable "tags" {
   default = {
   }
 }
+
+variable "myIP" {
+  type        = string
+  description = "Your ip address"
+}
