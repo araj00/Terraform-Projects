@@ -1,0 +1,54 @@
+variable "aws_region" {
+  description = "AWS region where resources will be created"
+  type        = string
+  default     = "ap-south-1"
+
+  validation {
+    condition     = can(regex("^[a-z]{2}-[a-z]+-[0-9]$", var.aws_region))
+    error_message = "AWS region must be a valid region format (e.g., us-east-1)."
+  }
+}
+
+variable "environment" {
+  description = "Environment name (e.g., dev, staging, prod)"
+  type        = string
+  default     = "dev"
+
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]*$", var.environment))
+    error_message = "Environment must start with a letter and contain only lowercase letters, numbers, and hyphens."
+  }
+}
+
+variable "project_name" {
+  description = "Name of the project for resource naming and tagging"
+  type        = string
+  default     = "vpc-peering-project"
+
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]*$", var.project_name))
+    error_message = "Project name must start with a letter and contain only lowercase letters, numbers, and hyphens."
+  }
+}
+
+variable "tags" {
+  type        = map(string)
+  description = "Additional tags to apply to all resources"
+  default = {
+  }
+}
+
+variable "ec2-key-name" {
+  description = "A public key for private ec2 instance to ssh locally"
+  default     = "private-ec2-key"
+}
+
+variable "instance-ami" {
+  description = "ami number for ec2 instances"
+  default     = "ami-09ed39e30153c3bf9" # you can get your preferred ami from aws console
+}
+
+variable "instance-type" {
+  description = "instance type for ec2 instances"
+  default     = "t3.micro" # you can get the list of available instance-type from aws console
+}
