@@ -14,13 +14,13 @@ locals {
   var.tags)
 }
 
-data "aws_availability_zone" "available" {
-  name  = "${var.aws_region}a"
+data "aws_availability_zones" "available" {
   state = "available"
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
+}
+
+resource "random_integer" "az_index" {
+  min = 0
+  max = length(data.aws_availability_zones.available.names)
 }
 
 # Initialize a VPC network with a CIDR block
@@ -38,7 +38,7 @@ resource "aws_vpc" "VPC-Network-A" {
 resource "aws_subnet" "public-subnet-VPC-A" {
   vpc_id                  = aws_vpc.VPC-Network-A.id
   cidr_block              = cidrsubnet(aws_vpc.VPC-Network-A.cidr_block, 8, 1)
-  availability_zone       = data.aws_availability_zone.available.name
+  availability_zone       = data.aws_availability_zones.available.names[random_integer.az_index.result]
   map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, {
@@ -71,7 +71,7 @@ resource "aws_route_table" "public-route-table-subnet-A" {
 resource "aws_subnet" "private-subnet-VPC-A" {
   vpc_id            = aws_vpc.VPC-Network-A.id
   cidr_block        = cidrsubnet(aws_vpc.VPC-Network-A.cidr_block, 8, 2)
-  availability_zone = data.aws_availability_zone.available.name
+  availability_zone = data.aws_availability_zones.available.names[random_integer.az_index.result]
 
   tags = merge(local.common_tags, {
     Name        = "${local.name_suffix}-private-subnet-VPC-A"
