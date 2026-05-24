@@ -213,7 +213,7 @@ resource "aws_vpc_security_group_egress_rule" "allow_icmp_request" {
 # Attach the key pair to ssh into public ec2-instances after initialization
 resource "aws_key_pair" "public-ec2-key" {
   key_name   = var.public-ec2-key-name
-  public_key = file("${path.module}/public-server-key-files/public-server-key.pub")
+  public_key = file("${path.module}/public-server-key.pub")
 }
 
 # A public ec2-instance in public subnet with internet gateway
@@ -232,7 +232,7 @@ resource "aws_instance" "public-ec2-instance" {
 # Attach the key pair to ssh into private ec2-instance through public ec2 instance as private does not have any internet access
 resource "aws_key_pair" "private-ec2-key" {
   key_name   = var.private-ec2-key-name
-  public_key = file("${path.module}/private-server-key-files/private-server-key.pub")
+  public_key = file("${path.module}/private-server-key.pub")
 }
 
 # A private ec2-instance in private VPC
