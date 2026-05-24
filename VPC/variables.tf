@@ -9,17 +9,6 @@ variable "aws_region" {
   }
 }
 
-variable "bucket_name_prefix" {
-  description = "Prefix for S3 bucket names (will be combined with random suffix for uniqueness)"
-  type        = string
-  default     = "vpc-bucket-s3"
-
-  validation {
-    condition     = can(regex("^[a-z0-9][a-z0-9-]*[a-z0-9]$", var.bucket_name_prefix))
-    error_message = "Bucket prefix must contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen."
-  }
-}
-
 variable "environment" {
   description = "Environment name (e.g., dev, staging, prod)"
   type        = string
