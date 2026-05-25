@@ -22,7 +22,7 @@ provider "aws" {
       Environment = var.environment
       Project     = var.project_name
       ManagedBy   = "Terraform"
-      Recipe      = "content-delivery-networks-cloudfront-origin-access-controls"
+      Recipe      = "VPC-peering-connection-with-two-different-vpcs"
     }
   }
 }

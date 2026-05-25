@@ -9,7 +9,7 @@ locals {
     Environment = var.environment
     Project     = var.project_name
     ManagedBy   = "Terraform"
-    Recipe      = "virtual-private-network"
+    Recipe      = "virtual-private-network-with-peering-connection"
     },
   var.tags)
 }

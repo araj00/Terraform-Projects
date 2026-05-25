@@ -22,7 +22,7 @@ provider "aws" {
       Environment = var.environment
       Project     = var.project_name
       ManagedBy   = "Terraform"
-      Recipe      = "content-delivery-networks-cloudfront-origin-access-controls"
+      Recipe      = "virtual-private-cloud-demo-with-private-and-public-ec2-instances"
     }
   }
 }
