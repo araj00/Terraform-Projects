@@ -29,7 +29,7 @@ resource "aws_vpc" "VPC-Network-A" {
   instance_tenancy = "default"
 
   tags = merge(local.common_tags, {
-    Name        = "${local.name_suffix}-VPC-A"
+    Name        = "${local.name_suffix}-VPC"
     Description = "A VPC network for isolated network"
   })
 }
@@ -68,13 +68,13 @@ resource "aws_route_table" "public-route-table-subnet-A" {
 }
 
 # Create a private route table to be within VPC network without internet access
-resource "aws_subnet" "private-subnet-VPC-A" {
+resource "aws_subnet" "private-subnet-VPC" {
   vpc_id            = aws_vpc.VPC-Network-A.id
   cidr_block        = cidrsubnet(aws_vpc.VPC-Network-A.cidr_block, 8, 2)
   availability_zone = data.aws_availability_zones.available.names[random_integer.az_index.result]
 
   tags = merge(local.common_tags, {
-    Name        = "${local.name_suffix}-private-subnet-VPC-A"
+    Name        = "${local.name_suffix}-private-subnet-VPC"
     Description = "A private subnet network for VPC A"
   })
 }
@@ -87,12 +87,12 @@ resource "aws_route_table_association" "public-subnet-route-association" {
 
 # Associating private subnet with private route table
 resource "aws_route_table_association" "private-subnet-route-association" {
-  subnet_id      = aws_subnet.private-subnet-VPC-A.id
+  subnet_id      = aws_subnet.private-subnet-VPC.id
   route_table_id = aws_vpc.VPC-Network-A.main_route_table_id
 }
 
 # Create a network acl for the subnet with network policies
-resource "aws_network_acl" "private-nacl-VPC-A" {
+resource "aws_network_acl" "private-nacl-VPC" {
   vpc_id = aws_vpc.VPC-Network-A.id
 
   ingress {
@@ -134,19 +134,19 @@ resource "aws_network_acl" "private-nacl-VPC-A" {
   }
 
   tags = merge(local.common_tags, {
-    Name        = "${local.name_suffix}-private-nacl-VPC-A"
+    Name        = "${local.name_suffix}-private-nacl-VPC"
     Description = "A private network ACL for VPC A"
   })
 }
 
 # Associating private NACL with private subnet whereas default NACL are attached to default subnet of VPC
-resource "aws_network_acl_association" "private-nacl-VPC-A" {
-  network_acl_id = aws_network_acl.private-nacl-VPC-A.id
-  subnet_id      = aws_subnet.private-subnet-VPC-A.id
+resource "aws_network_acl_association" "private-nacl-VPC" {
+  network_acl_id = aws_network_acl.private-nacl-VPC.id
+  subnet_id      = aws_subnet.private-subnet-VPC.id
 }
 
 # Security groups are for the ec2 instances defined in the given subnet
-resource "aws_vpc_security_group_ingress_rule" "default-security-ssh-rule-VPC-A" {
+resource "aws_vpc_security_group_ingress_rule" "default-security-ssh-rule-VPC" {
   security_group_id = aws_vpc.VPC-Network-A.default_security_group_id
 
   cidr_ipv4   = var.myIP
@@ -156,7 +156,7 @@ resource "aws_vpc_security_group_ingress_rule" "default-security-ssh-rule-VPC-A"
 }
 
 # custom policy rules for default security groups in VPC
-resource "aws_vpc_security_group_ingress_rule" "default-security-icmp-rule-VPC-A" {
+resource "aws_vpc_security_group_ingress_rule" "ping-from-your-ip" {
   security_group_id = aws_vpc.VPC-Network-A.default_security_group_id
 
   cidr_ipv4   = var.myIP
@@ -165,10 +165,10 @@ resource "aws_vpc_security_group_ingress_rule" "default-security-icmp-rule-VPC-A
   to_port     = -1
 }
 
-resource "aws_vpc_security_group_ingress_rule" "default-security-icmp-rule-subnet-2-VPC-A" {
+resource "aws_vpc_security_group_ingress_rule" "ping-from-your-private-subnet" {
   security_group_id = aws_vpc.VPC-Network-A.default_security_group_id
 
-  cidr_ipv4   = aws_subnet.private-subnet-VPC-A.cidr_block
+  cidr_ipv4   = aws_subnet.private-subnet-VPC.cidr_block
   from_port   = -1
   ip_protocol = "icmp"
   to_port     = -1
@@ -224,7 +224,7 @@ resource "aws_instance" "public-ec2-instance" {
   subnet_id              = aws_subnet.public-subnet-VPC.id
 
   tags = merge(local.common_tags, {
-    Name = "Public-ec2-instance-VPC-A"
+    Name = "Public-ec2-instance-VPC"
   })
 }
 
@@ -240,9 +240,9 @@ resource "aws_instance" "private-ec2-instance" {
   instance_type          = var.instance-type
   key_name               = aws_key_pair.private-ec2-key.key_name
   vpc_security_group_ids = [aws_security_group.allow_ssh_and_icmp.id]
-  subnet_id              = aws_subnet.private-subnet-VPC-A.id
+  subnet_id              = aws_subnet.private-subnet-VPC.id
 
   tags = merge(local.common_tags, {
-    Name = "Private-ec2-instance-VPC-A"
+    Name = "Private-ec2-instance-VPC"
   })
 }
