@@ -52,3 +52,9 @@ variable "instance-type" {
   description = "instance type for ec2 instances"
   default     = "t3.micro" # you can get the list of available instance-type from aws console
 }
+
+# Limit the ssh of the vpc to noone except your ip. Use curl ifconfig.me to get your public ip
+variable "myIP" {
+  type        = string
+  description = "Your ip address"
+}
