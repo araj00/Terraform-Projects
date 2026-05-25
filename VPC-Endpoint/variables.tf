@@ -71,14 +71,14 @@ variable "bucket_name_prefix" {
 }
 
 variable "files_source" {
-  type    = set(object({
-    file = string
+  type = set(object({
+    file         = string
     content-type = string
   }))
   default = [
     {
-      file = "./example.txt"
+      file         = "./example.txt"
       content-type = "text/plain"
     }
-    ]
+  ]
 }
