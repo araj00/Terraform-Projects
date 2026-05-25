@@ -1,0 +1,1 @@
+this is a file used for demo purpose to upload and list it through "aws s3 ls" to showcase vpc-endpoints demo
