@@ -6,7 +6,7 @@ async function fetchUserData() {
     }
 
     try {
-        const response = await fetch(`https://r9nsfw1cr1.execute-api.ap-south-1.amazonaws.com/dev/user?userId=${userId}`);
+        const response = await fetch(`https://your-endpoint?userId=${userId}`); // replace endpoint with your own
         const data = await response.json();
         const userDetails = document.getElementById('userDetails');
         

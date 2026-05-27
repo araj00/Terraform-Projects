@@ -125,8 +125,8 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   }
 
   default_cache_behavior {
-    allowed_methods        = ["GET", "OPTIONS"]
-    cached_methods         = ["GET"]
+    allowed_methods        = ["GET", "OPTIONS", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
     cache_policy_id        = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
     target_origin_id       = local.content_bucket_name
     viewer_protocol_policy = "redirect-to-https"

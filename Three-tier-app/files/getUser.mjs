@@ -2,7 +2,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 
-const ddbClient = new DynamoDBClient({ region: 'ap-south-1' });
+const ddbClient = new DynamoDBClient({ region: 'your-region' }); // replace with your own region
 const ddb = DynamoDBDocumentClient.from(ddbClient);
 
 async function handler(event) {
@@ -19,13 +19,19 @@ async function handler(event) {
             return {
                 statusCode: 200,
                 body: JSON.stringify(Item),
-                headers: {'Content-Type': 'application/json'}
+                headers:  {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'https://yourdomain.com' // replace it with cloudfront distribution name
+                }
             };
         } else {
             return {
                 statusCode: 404,
                 body: JSON.stringify({ message: "No user data found" }),
-                headers: {'Content-Type': 'application/json'}
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'https://yourdomain.com' // replace it with cloudfront distribution name
+                }
             };
         }
     } catch (err) {
@@ -33,7 +39,10 @@ async function handler(event) {
         return {
             statusCode: 500,
             body: JSON.stringify({ message: "Failed to retrieve user data" }),
-            headers: {'Content-Type': 'application/json'}
+            headers:  {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'https://yourdomain.com' // replace it with cloudfront distribution name
+                }
         };
     }
 }
